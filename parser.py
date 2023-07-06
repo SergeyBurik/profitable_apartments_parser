@@ -1,13 +1,24 @@
 from bs4 import BeautifulSoup
+from geopy import Yandex
 from selenium import webdriver
-from selenium.webdriver import Proxy
-from selenium.webdriver.common.proxy import ProxyType
-from geopy.geocoders import Nominatim
-from selenium.webdriver.firefox.options import Options
-import pandas as pd
+from selenium.webdriver.chrome.options import Options
+
 from parse_metro_names import get_metro_names
+from keywords import *
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+yandex_api = os.environ.get("YANDEX_API")
 
 metro_names = get_metro_names()
+metro_names["Речной вокзал"] = 106
+metro_names["Фили"] = 142
+metro_names["Деловой центр"] = 272
+metro_names["Водный стадион"] = 29
 
 
 class ParserQuery:
@@ -23,39 +34,33 @@ class ParserQuery:
 		self.max_square = max_square
 		self.offer_type = offer_type
 
-
 class Parser:
-	def __init__(self, parse_query: ParserQuery):
+	def __init__(self, parse_query: ParserQuery, pages=5, browser_headless=True):
 		self.base_url = "https://www.cian.ru/cat.php?currency=2"
+		self.pages = pages
+		self.apartments_limit = 10000000
+		self.browser_headless = browser_headless
 		self.parse_query = parse_query
 		self.url = self.get_url()
 		self.driver = self.init_driver()
-		self.driver.get(self.url)
-		self.parse()
+		self.data = []
 
-	# self.driver.quit()
+
+	def start_parser(self):
+		self.data = self.parse()
 
 	def get_url(self):
 		url = f"{self.base_url}&deal_type={self.parse_query.deal_type}&engine_version=2" \
 		      f"&maxprice={self.parse_query.max_price}&minprice={self.parse_query.min_price}" \
 		      f"&offer_type={self.parse_query.offer_type}&room{self.parse_query.bedrooms}=1&region=1" \
-		      f"&metro%5B0%5D={self.parse_query.metro_id}"
+		      f"&metro%5B0%5D={self.parse_query.metro_id}&maxlarea={self.parse_query.max_square}" \
+		      f"&minlarea={self.parse_query.min_square}"
 		return url
 
 	def init_driver(self):
-		myProxy = "121.1.41.162:111"
-
-		proxy = Proxy({
-			'proxyType': ProxyType.MANUAL,
-			'httpProxy': myProxy,
-			'ftpProxy': myProxy,
-			'sslProxy': myProxy,
-			'noProxy': ''  # set this value as desired
-		})
-
 		options = Options()
-		options.add_argument('--headless')
-		driver = webdriver.Chrome(r'chromedriver.exe')
+		options.headless = self.browser_headless
+		driver = webdriver.Chrome(DRIVER_PATH, options=options)
 		return driver
 
 	def parse(self):
@@ -64,18 +69,46 @@ class Parser:
 		self.driver.get(self.url)
 		soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
+		# number of apartments by query
+		total_count_element_text = soup.find("div", attrs={"data-name": "SummaryHeader"}).text.strip()
+		total_apartments = int("".join([el for el in total_count_element_text if el.isnumeric()]))
+
 		apartments = soup.find_all("article", attrs={"data-name": "CardComponent"})
-		for apartment in apartments:
+		for i in range(1, self.pages + 1):
+			if i != 1:
+				self.driver.get(self.url + "&p=" + str(i))
+			for apartment in apartments:
+				try:
+					price = apartment.find("span", attrs={"data-mark": "MainPrice"}).text.strip()
+					price = int(price[:-2].replace(" ", ""))
+					address_elements = apartment.find_all("a", attrs={"data-name": "GeoLabel"})
+					address = ""
+					for address_element in address_elements:
+						el = address_element.contents[0]
+						if ("АО" in el) or ("р-н" in el) or ("м. " in el):
+							continue
+						address += el + ", "
+					posted_date = apartment.find("div", class_=POSTED_DATE_CLASSNAME).text.strip()
+					link = apartment.find("a", class_=APARTMENT_LINK_CLASSNAME, href=True)["href"]
+					obj = {"price": price, "address": address[:-2],
+					       "posted_date": posted_date, "link": link}  # remove last ", "
+					data.append(obj)
+				# TODO: change exception name
+				except Exception as e:
+					print(e)
+			if len(data) >= self.apartments_limit:
+				break
+			if len(data) >= total_apartments:
+				break
+		return self.geolocate(data)
+
+	def geolocate(self, data):
+		geolocator = Yandex(api_key=yandex_api, user_agent="locate_apartments")
+		for apartment in data:
 			try:
-				price = apartment.find("span", attrs={"data-mark": "MainPrice"}).text.strip()
-				# address = apartment.find("div._93444fe79c--labels--L8WyJ", attrs={"data-name": "GeoLabel"}).text.strip()
-				obj = {"price": price, "address": ""}
-				print(obj)
-				data.append(obj)
-			except Exception as e:
+				coordinates = geolocator.geocode(apartment["address"])
+				apartment["coordinates"] = [coordinates.latitude, coordinates.longitude]
+			except AttributeError as e:
 				print(e)
-		print(data)
-
-
-query = ParserQuery("sale", "Авиамоторная", 2, 4 * (10 ** 6), 10 ** 7)
-parser = Parser(query)
+				apartment["coordinates"] = [None, None]
+		return data

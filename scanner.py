@@ -1,6 +1,5 @@
 import json
 import matplotlib.pyplot as plt
-from pprint import pprint
 from random import uniform
 
 
@@ -45,15 +44,6 @@ class Scanner:
 		return result
 
 	def find_neighbours(self, apartment, data):
-		neighbours = []
-		for el in data:
-			distance = (apartment["coordinates"][0] - el["coordinates"][0]) ** 2 + \
-			           (apartment["coordinates"][1] - el["coordinates"][1]) ** 2
-			neighbours.append([el, distance ** 0.5])
-		neighbours = sorted(neighbours, key=lambda x: x[1])
-		return [el[0] for el in neighbours[:self.n_neighbours]]
-
-	def find_neighbours_optimized(self, apartment, data):
 		data = sorted(data, key=lambda x: ((apartment["coordinates"][0] - x["coordinates"][0]) ** 2 +
 		                                   (apartment["coordinates"][1] - x["coordinates"][1]) ** 2) ** 0.5)
 

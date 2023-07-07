@@ -1,7 +1,7 @@
 def get_metro_names():
 	f = open("files/metro.txt", encoding="utf-8")
 
-	names = [l[:-1] for l in f.readlines() if len(l) > 1]
+	names = [l[:-1] for l in f.readlines()]
 	names = sorted(set(names))
 
 	result = dict()
@@ -12,4 +12,8 @@ def get_metro_names():
 			name = name[:idx]
 		result[name] = i
 		i += 1
+	# still in development...
+	# some metro ids may differ from source website
+	result["Водный стадион"] = 29
+
 	return result

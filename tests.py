@@ -1,9 +1,7 @@
 import json
-
 import pytest
-from selenium.webdriver.chrome.webdriver import WebDriver
-
 import parser, scanner
+from selenium.webdriver.chrome.webdriver import WebDriver
 
 
 def get_parser_obj():
@@ -60,26 +58,3 @@ def test_scanner_visualize_neighbours():
 			])
 	except Exception as exc:
 		assert False, f"'test_scanner_visualize_neighbours' raised an exception {exc}"
-
-import time
-def test_find_n():
-	f = open("outputs/result2.txt", encoding="utf-8")
-	content = f.read()
-	data = json.loads(content)
-
-	scanner_obj = scanner.Scanner("", n_neighbours=3)
-	n = 10000
-
-	start = time.time()
-	for _ in range(n):
-		result = scanner_obj.find_neighbours(data[0], data)
-	end = time.time()
-	print(end - start)
-
-	start = time.time()
-	for _ in range(n):
-		result = scanner_obj.find_neighbours_optimized(data[0], data)
-	end = time.time()
-	print(end - start)
-
-test_find_n()

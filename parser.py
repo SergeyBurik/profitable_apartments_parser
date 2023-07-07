@@ -15,10 +15,6 @@ load_dotenv(dotenv_path)
 yandex_api = os.environ.get("YANDEX_API")
 
 metro_names = get_metro_names()
-metro_names["Речной вокзал"] = 106
-metro_names["Фили"] = 142
-metro_names["Деловой центр"] = 272
-metro_names["Водный стадион"] = 29
 
 
 class ParserQuery:
@@ -34,6 +30,7 @@ class ParserQuery:
 		self.max_square = max_square
 		self.offer_type = offer_type
 
+
 class Parser:
 	def __init__(self, parse_query: ParserQuery, pages=5, browser_headless=True):
 		self.base_url = "https://www.cian.ru/cat.php?currency=2"
@@ -44,7 +41,6 @@ class Parser:
 		self.url = self.get_url()
 		self.driver = self.init_driver()
 		self.data = []
-
 
 	def start_parser(self):
 		self.data = self.parse()
@@ -93,7 +89,6 @@ class Parser:
 					obj = {"price": price, "address": address[:-2],
 					       "posted_date": posted_date, "link": link}  # remove last ", "
 					data.append(obj)
-				# TODO: change exception name
 				except Exception as e:
 					print(e)
 			if len(data) >= self.apartments_limit:

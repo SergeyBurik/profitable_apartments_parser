@@ -1,5 +1,16 @@
 # profitable_apartments_parser
 
+## How it works
+This project includes `parser` module for collecting real estate data in Moscow region using `bs4` and `selenium`. <br>
+Scanner uses `n-nearest-neighbors method` to find profitable apartments in given area.
+First, for each apartment, sort neighbours by distance `d(x, y)`:
+$$d(x,y) = \sqrt{(x_0-y_0)^2+(x_1-y_1)^2}$$
+`x - given apartment coordinates` and `y - possible nearest neighbour coordinates` <br>
+Then, sort apartments profitability by metric function:
+$$M(x, y) =  \sum_{i=0}^n (y_i)  - x $$
+`x - given apartment price` and `y - set of prices of neighboring houses` <br>
+The larger the value of `M(x, y)`, the more profitable the apartment.
+
 ## Getting started
 Python version > 3.7 <br>
 Install requirements and run main.py

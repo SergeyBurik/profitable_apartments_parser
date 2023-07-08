@@ -46,4 +46,5 @@ print(profit_apartments)
 x-axis: longitude; y-axis:latitude <br>
 Different colors show groups of neighbours <br>
 Query: 1 bedroom apartments, n_neighbours=5, metro station: "Vodny stadion"
-![d1](https://github.com/SergeyBurik/profitable_apartments_parser/assets/40773987/058f4d97-a84c-494c-bab5-8588d2cbe762)
+![d1](https://github.com/SergeyBurik/profitable_apartments_parser/assets/40773987/31fbf870-a699-4573-9239-8791ab919137)
+

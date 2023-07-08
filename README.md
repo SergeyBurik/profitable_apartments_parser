@@ -7,7 +7,7 @@ First, for each apartment, sort neighbours by distance `d(x, y)`:
 $$d(x,y) = \sqrt{(x_0-y_0)^2+(x_1-y_1)^2}$$
 `x - given apartment coordinates` and `y - possible nearest neighbour coordinates` <br>
 Then, sort apartments profitability by metric function:
-$$M(x, y) = \frac{1}{n} *  \sum_{i=0}^n (y_i)  - x $$
+$$M(x, y) = \frac{1}{n} \sum_{i=0}^n (y_i)  - x $$
 `x - given apartment price` and `y - set of prices of neighboring houses` <br>
 The larger the value of `M(x, y)`, the more profitable the apartment.
 

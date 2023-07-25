@@ -3,3 +3,4 @@ geopy
 selenium
 python-dotenv
 pytest
+matplotlib

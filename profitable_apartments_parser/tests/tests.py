@@ -7,7 +7,9 @@ from parser import parser
 
 def get_parser_obj():
     parser_query = parser.ParserQuery(
-        "sale", "Водный стадион", 1,
+        "sale",
+        "Водный стадион",
+        1,
         min_price=3 * (10**6),
         max_price=20 * (10**6),
         min_square=18,
